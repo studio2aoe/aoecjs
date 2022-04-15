@@ -39,28 +39,24 @@ class SoundChip extends AudioWorkletProcessor {
         switch (msg.data.name) {
           case 'set_freq':
             this._wasmExports.set_freq(
-              msg.data.arg[0], // id (u64 -> usize)
-              msg.data.arg[1] //  frequency (f32)
+              msg.data.arg[0] //  frequency (f32)
             )
             break
           case 'set_vol':
             this._wasmExports.set_vol(
-              msg.data.arg[0], // id (u64 -> usize)
-              msg.data.arg[1], // channel (u64 -> usize)
-              msg.data.arg[2] //  volume (u64 -> u8)
+              msg.data.arg[0], // channel (u64 -> usize)
+              msg.data.arg[1] //  volume (u64 -> u8)
             )
             break
           case 'set_mute':
             this._wasmExports.set_mute(
-              msg.data.arg[0], // id (u64 -> usize)
-              msg.data.arg[1] //  mute (u64 -> bool)
+              msg.data.arg[0] //  mute (u64 -> bool)
             )
             break
           case 'set_param':
             this._wasmExports.set_param(
-              msg.data.arg[0], // id (u64 -> usize)
-              msg.data.arg[1], // key (u64 -> usize)
-              msg.data.arg[2] //  value (u64 -> u32)
+              msg.data.arg[0], // key (u64 -> usize)
+              msg.data.arg[1] //  value (u64 -> u32)
             )
             break
         }

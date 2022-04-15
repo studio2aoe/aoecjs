@@ -1,18 +1,22 @@
 #[macro_use]
 extern crate lazy_static;
 use parking_lot::Mutex;
-mod soundchip;
 
-const DEFAULT_SAMPLE_RATE: f32 = 44100_f32;
+use aoec::soundchips::BuiltIn;
+use aoec::traits::Play;
+use aoec::traits::Control;
+
+const DEFAULT_SAMPLE_RATE: f32 = 48000_f32;
+const SAMPLE_BUFSIZE: usize = 128;
 
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-// Init the mutex has SoundChip instance
+// Init the mutex has aoec builtin chip
 lazy_static! {
-    static ref SOUNDCHIP: Mutex<soundchip::SoundChip> =
-        Mutex::new(soundchip::SoundChip::new(DEFAULT_SAMPLE_RATE));
+    static ref AOEC_BUILTIN: Mutex<BuiltIn>
+        = Mutex::new(BuiltIn::new(DEFAULT_SAMPLE_RATE));
 }
 
 #[no_mangle]
@@ -25,44 +29,57 @@ pub extern "C" fn outbuf_alloc(size: usize) -> *mut f32 {
 
 #[no_mangle]
 pub extern "C" fn process(
-    outptr0: *mut f32, outptr1: *mut f32, sample_count: u32
+    outptr0: *mut f32, outptr1: *mut f32, _sample_count: u32
 )
 {
-    let mut soundchip = SOUNDCHIP.lock();
-    soundchip.process(outptr0, outptr1, sample_count);
+    let mut aoec = AOEC_BUILTIN.lock();
+
+    let outbuf0: &mut [f32] = unsafe {
+        std::slice::from_raw_parts_mut(outptr0, SAMPLE_BUFSIZE)
+    };
+    let outbuf1: &mut [f32] = unsafe {
+        std::slice::from_raw_parts_mut(outptr1, SAMPLE_BUFSIZE)
+    };
+
+    for i in 0..SAMPLE_BUFSIZE {
+        aoec.clock();
+        outbuf0[i] = aoec.read_sample(0);
+        outbuf1[i] = aoec.read_sample(1);
+    }
+
 }
 
 #[no_mangle]
 pub extern "C" fn set_sample_rate(sample_rate: f32) {
-    let mut soundchip = SOUNDCHIP.lock();
-    soundchip.set_sample_rate(sample_rate);
+    let mut aoec = AOEC_BUILTIN.lock();
+    aoec.set_sample_rate(sample_rate);
 }
 
 #[no_mangle]
-pub extern "C" fn set_freq(id: usize, freq: f32) {
-    let mut soundchip = SOUNDCHIP.lock();
-    soundchip.set_freq(id, freq);
+pub extern "C" fn set_freq(freq: f32) {
+    let mut aoec = AOEC_BUILTIN.lock();
+    aoec.set_freq(freq);
 }
 
 #[no_mangle]
-pub extern "C" fn set_vol(id: usize, ch: usize, vol: u8) {
-    let mut soundchip = SOUNDCHIP.lock();
-    soundchip.set_vol(id, ch, vol);
+pub extern "C" fn set_vol(ch: usize, vol: u8) {
+    let mut aoec = AOEC_BUILTIN.lock();
+    aoec.set_vol(ch, vol);
 }
 
 #[no_mangle]
-pub extern "C" fn set_mute(id: usize, mute: usize) {
-    let mut soundchip = SOUNDCHIP.lock();
+pub extern "C" fn set_mute(mute: usize) {
+    let mut aoec = AOEC_BUILTIN.lock();
     let mute_bool = match mute % 2 {
         0 => false,
         1 => true,
         _ => unreachable!()
     };
-    soundchip.set_mute(id, mute_bool);
+    aoec.set_mute(mute_bool);
 }
 
 #[no_mangle]
-pub extern "C" fn set_param(id: usize, key: usize, value: u32) {
-    let mut soundchip = SOUNDCHIP.lock();
-    soundchip.set_param(id, key, value);
+pub extern "C" fn set_param(key: usize, value: u32) {
+    let mut aoec = AOEC_BUILTIN.lock();
+    aoec.set_param(key, value);
 }
