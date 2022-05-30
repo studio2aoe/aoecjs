@@ -5,7 +5,7 @@ version = 3
 [[package]]
 name = "aoec"
 version = "0.1.0"
-source = "git+https://github.com/studio2aoe/aoec?branch=develop#3418019a60aa70983c5a066fcbd7d706e7a81a3f"
+source = "git+https://github.com/studio2aoe/aoec?branch=develop#9d735fe614dc04893d8c306bb51fc9bf81c03c1c"
 
 [[package]]
 name = "aoecjs"

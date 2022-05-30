@@ -3,6 +3,7 @@ const SAMPLE_BUFSIZE = 128
 interface AoecExports extends WebAssembly.Exports {
   outbuf_alloc: CallableFunction
   set_sample_rate: CallableFunction
+  set_tempo: CallableFunction
   set_freq: CallableFunction
   set_vol: CallableFunction
   set_mute: CallableFunction
@@ -37,6 +38,11 @@ class SoundChip extends AudioWorkletProcessor {
         if (!this._wasmExports) return true
         // console.log(msg.data.name + ' (' + msg.data.arg + ')')
         switch (msg.data.name) {
+          case 'set_tempo':
+            this._wasmExports.set_tempo(
+              msg.data.arg[0] // tempo (f32)
+            )
+            break
           case 'set_freq':
             this._wasmExports.set_freq(
               msg.data.arg[0] //  frequency (f32)
