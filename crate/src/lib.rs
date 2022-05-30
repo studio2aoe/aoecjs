@@ -9,10 +9,6 @@ use aoec::traits::Control;
 const DEFAULT_SAMPLE_RATE: f32 = 48000_f32;
 const SAMPLE_BUFSIZE: usize = 128;
 
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 // Init the mutex has aoec builtin chip
 lazy_static! {
     static ref AOEC_BUILTIN: Mutex<BuiltIn>

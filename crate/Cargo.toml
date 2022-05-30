@@ -11,5 +11,4 @@ crate-type = ["cdylib"]
 [dependencies]
 parking_lot = "0.11.1"
 lazy_static = "1.4.0"
-wee_alloc = "0.4.5"
 aoec = { git = "https://github.com/studio2aoe/aoec", branch = "develop" }
