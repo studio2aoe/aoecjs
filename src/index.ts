@@ -5,7 +5,8 @@ interface AoecExports extends WebAssembly.Exports {
   set_sample_rate: CallableFunction
   set_tempo: CallableFunction
   set_freq: CallableFunction
-  set_vol: CallableFunction
+  set_env: CallableFunction
+  set_pan: CallableFunction
   set_mute: CallableFunction
   set_param: CallableFunction
   process: CallableFunction
@@ -48,21 +49,24 @@ class SoundChip extends AudioWorkletProcessor {
               msg.data.arg[0] //  frequency (f32)
             )
             break
-          case 'set_vol':
-            this._wasmExports.set_vol(
-              msg.data.arg[0], // channel (u64 -> usize)
-              msg.data.arg[1] //  volume (u64 -> u8)
+          case 'set_env':
+            this._wasmExports.set_env(
+              msg.data.arg[0] //  volume (u32 -> u8)
             )
             break
+          case 'set_pan':
+            this._wasmExports.set_pan(
+              msg.data.arg[0] // panning (u32 -> u8)
+            )
           case 'set_mute':
             this._wasmExports.set_mute(
-              msg.data.arg[0] //  mute (u64 -> bool)
+              msg.data.arg[0] //  mute (u32 -> bool)
             )
             break
           case 'set_param':
             this._wasmExports.set_param(
-              msg.data.arg[0], // key (u64 -> usize)
-              msg.data.arg[1] //  value (u64 -> u32)
+              msg.data.arg[0], // key (u32 -> usize)
+              msg.data.arg[1] //  value (u32)
             )
             break
         }

@@ -64,9 +64,15 @@ pub extern "C" fn set_tempo(tempo: f32) {
 }
 
 #[no_mangle]
-pub extern "C" fn set_vol(ch: usize, vol: u8) {
+pub extern "C" fn set_env(env: u8) {
     let mut aoec = AOEC_BUILTIN.lock();
-    aoec.set_vol(ch, vol);
+    aoec.set_env(env);
+}
+
+#[no_mangle]
+pub extern "C" fn set_pan(pan: u8) {
+    let mut aoec = AOEC_BUILTIN.lock();
+    aoec.set_pan(pan);
 }
 
 #[no_mangle]
