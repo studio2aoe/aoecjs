@@ -2,22 +2,24 @@ const SAMPLE_BUFSIZE = 128
 
 interface AoecExports extends WebAssembly.Exports {
   outbuf_alloc: CallableFunction
-  set_sample_rate: CallableFunction
-  set_tempo: CallableFunction
-  set_freq: CallableFunction
-  set_env: CallableFunction
-  set_pan: CallableFunction
-  set_mute: CallableFunction
-  set_param: CallableFunction
+  setparam: CallableFunction
   process: CallableFunction
   memory: WebAssembly.Memory
+}
+
+function Float32toBits (input: number) {
+  let buffer = new ArrayBuffer(4)
+  let f32view = new Float32Array(buffer)
+  let u32view = new Uint32Array(buffer)
+  f32view[0] = input
+  return u32view[0]
 }
 
 class SoundChip extends AudioWorkletProcessor {
   _wasmExports!: AoecExports
   _outbuf!: [Float32Array, Float32Array]
   _outptr!: [number, number]
-  
+
   constructor () {
     super()
     this.setupMessageHandler()
@@ -37,44 +39,24 @@ class SoundChip extends AudioWorkletProcessor {
 
       if (msg.type === 'wasmfunc') {
         if (!this._wasmExports) return true
-        // console.log(msg.data.name + ' (' + msg.data.arg + ')')
-        switch (msg.data.name) {
-          case 'set_tempo':
-            this._wasmExports.set_tempo(
-              msg.data.arg[0] // tempo (f32)
-            )
-            break
-          case 'set_freq':
-            this._wasmExports.set_freq(
-              msg.data.arg[0] //  frequency (f32)
-            )
-            break
-          case 'set_env':
-            this._wasmExports.set_env(
-              msg.data.arg[0] //  volume (u32 -> u8)
-            )
-            break
-          case 'set_pan':
-            this._wasmExports.set_pan(
-              msg.data.arg[0] // panning (u32 -> u8)
-            )
-          case 'set_mute':
-            this._wasmExports.set_mute(
-              msg.data.arg[0] //  mute (u32 -> bool)
-            )
-            break
-          case 'set_param':
-            this._wasmExports.set_param(
-              msg.data.arg[0], // key (u32 -> usize)
-              msg.data.arg[1] //  value (u32)
-            )
-            break
+        const data = msg.data;
+        // console.log(data.name + ' (' + data.arg + ')')
+
+        let key = data.arg[0]
+        let value = (key === 0x12)
+          ? Float32toBits(data.arg[1])
+          : data.arg[1]
+
+        switch (data.name) {
+          case 'setparam':
+            this._wasmExports.setparam(key, value)
+          break
         }
       }
     }
   }
 
-  async initWasm (data: BufferSource) {    
+  async initWasm (data: BufferSource) {
     /* I don't know why the `importObject` is needed,
     * because rust crate doesn't use any function from JS.
     * but compiled wasm has imported "$now" function at first line.
@@ -85,7 +67,7 @@ class SoundChip extends AudioWorkletProcessor {
     this._wasmExports = await WebAssembly.instantiate(data, importObject)
       .then(w => w.instance.exports as AoecExports)
 
-    this._wasmExports.set_sample_rate(sampleRate)
+    this._wasmExports.setparam(0x11, sampleRate)
 
     this._outptr = [
       this._wasmExports.outbuf_alloc(SAMPLE_BUFSIZE),
@@ -107,9 +89,9 @@ class SoundChip extends AudioWorkletProcessor {
   }
 
   process (
-    inputs: Float32Array[][], 
-    outputs: Float32Array[][], 
-    params: any) {
+    _inputs: Float32Array[][],
+    outputs: Float32Array[][],
+    _params: any) {
     if (!this._wasmExports) {
       return true
     }

@@ -6,7 +6,7 @@ use aoec::soundchips::BuiltIn;
 use aoec::traits::Play;
 use aoec::traits::Control;
 
-const DEFAULT_SAMPLE_RATE: f32 = 48000_f32;
+const DEFAULT_SAMPLE_RATE: u32 = 48000_u32;
 const SAMPLE_BUFSIZE: usize = 128;
 
 // Init the mutex has aoec builtin chip
@@ -46,48 +46,7 @@ pub extern "C" fn process(
 }
 
 #[no_mangle]
-pub extern "C" fn set_sample_rate(sample_rate: f32) {
+pub extern "C" fn setparam(key: u32, value: u32) {
     let mut aoec = AOEC_BUILTIN.lock();
-    aoec.set_sample_rate(sample_rate);
-}
-
-#[no_mangle]
-pub extern "C" fn set_freq(freq: f32) {
-    let mut aoec = AOEC_BUILTIN.lock();
-    aoec.set_freq(freq);
-}
-
-#[no_mangle]
-pub extern "C" fn set_tempo(tempo: f32) {
-    let mut aoec = AOEC_BUILTIN.lock();
-    aoec.set_tempo(tempo);
-}
-
-#[no_mangle]
-pub extern "C" fn set_env(env: u8) {
-    let mut aoec = AOEC_BUILTIN.lock();
-    aoec.set_env(env);
-}
-
-#[no_mangle]
-pub extern "C" fn set_pan(pan: u8) {
-    let mut aoec = AOEC_BUILTIN.lock();
-    aoec.set_pan(pan);
-}
-
-#[no_mangle]
-pub extern "C" fn set_mute(mute: usize) {
-    let mut aoec = AOEC_BUILTIN.lock();
-    let mute_bool = match mute % 2 {
-        0 => false,
-        1 => true,
-        _ => unreachable!()
-    };
-    aoec.set_mute(mute_bool);
-}
-
-#[no_mangle]
-pub extern "C" fn set_param(key: usize, value: u32) {
-    let mut aoec = AOEC_BUILTIN.lock();
-    aoec.set_param(key, value);
+    aoec.setparam(key, value);
 }
